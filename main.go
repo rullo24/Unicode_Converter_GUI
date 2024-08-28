@@ -70,12 +70,17 @@ func conv_unicode_string_to_point_code(unicode_character_string string) (string,
 	unicode_character_string = strings.TrimSpace(unicode_character_string)
 	var unicode_string_as_runes []rune = []rune(unicode_character_string) // Each rune is max 32-bits
 	if len(unicode_string_as_runes) > 1 {
-		return "", errors.New("Only one rune should exist in the unicode output box")
+		return "", errors.New("only one rune shuld exist in the unicode output box")
 	}
 	var unicode_character_rune rune = unicode_string_as_runes[0] // Capturing only the first rune
 
 	var unicode_point_code_int int = int(unicode_character_rune)
-	var unicode_point_code_string string = strconv.Itoa(unicode_point_code_int)
+	// var unicode_point_code_string string = strconv.Itoa(unicode_point_code_int)
+	var unicode_point_code_string string = strconv.FormatInt(int64(unicode_point_code_int), 16) // converting to base 16
+
+	for len(unicode_point_code_string) < 4 { // ensuring that there are always 4 characters in the unicode point code
+		unicode_point_code_string = "0" + unicode_point_code_string // adding zeros to the front until it is the valid point code size
+	}
 
 	var unicode_string string = "U+" + unicode_point_code_string
 
@@ -93,12 +98,13 @@ func conv_point_code_to_unicode(point_code_string string) (string, error) {
 	var point_code string = strings.Split(point_code_string, "+")[1]
 
 	// Converting string value to representative integer
-	point_code_int, conv_err := strconv.Atoi(point_code)
+	// point_code_int, conv_err := strconv.Atoi(point_code)
+	point_code_hex, conv_err := strconv.ParseInt(point_code, 16, 32) // base-16 (hex) & pushed into i32 (i16 wouldnt cover it)
 	if conv_err != nil {
 		return "", errors.New("failed to conv string to int (32-bits)")
 	}
 
-	return string(rune(point_code_int)), nil
+	return string(rune(point_code_hex)), nil
 }
 
 func create_string_slice_from_config_file(file_loc string) ([]string, error) {
